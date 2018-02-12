@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 50;
+            padding: 50;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+
+    var map;
+    var markers = [];
+
+    function initMap() {
+        var haightAshbury = new google.maps.LatLng(51.5, -0.1);
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 12,
+            center: haightAshbury,
+            mapTypeId: 'terrain'
+        });
+
+        map.addListener('click', function (event) {
+            addMarker(event.latLng);
+        });
+
+        // Adds a marker at the center of the map.
+        addMarker(haightAshbury);
+
+        // Adds a marker to the map and push to the array.
+        function addMarker(location) {
+            var marker = new google.maps.Marker({
+                position: location,
+                map: map
+            });
+            markers.push(marker);
+        }
+
+        // Sets the map on all markers in the array.
+        function setMapOnAll(map) {
+            for (var i = 0; i < markers.length; i++) {
+                markers[i].setMap(map);
+            }
+        }
+
+        // Removes the markers from the map, but keeps them in the array.
+        function clearMarkers() {
+            setMapOnAll(null);
+        }
+
+        // Shows any markers currently in the array.
+        function showMarkers() {
+            setMapOnAll(map);
+        }
+
+        // Deletes all markers in the array by removing references to them.
+        function deleteMarkers() {
+            clearMarkers();
+            markers = [];
+        }
+
+        function getDrivers() {
+            $.ajax({
+                type: "GET",
+                dataType: "jsonp",
+                url: "http://localhost:3000/drivers",
+                success: function (data) {
+                    deleteMarkers();
+                    for (var i = 0; i <= data.length; i++) {
+                        addMarker(new google.maps.LatLng(data[i].Latitude, data[i].Longitude));
+                        showMarkers();
+                    }
+                },
+                error: function (result) {
+                    alert("Error");
+                }
+            });
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function demo() {
+            var i = 0;
+            while (true) {
+                i++;
+                console.log('Taking a break...');
+                await sleep(2000);
+                console.log('2 second later');
+                getDrivers();
+            }
+        }
+
+        demo();
+
+
+    }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBgCmbu2OSW7DFzKdKp0s_HfVhwMmXTYWA&callback=initMap">
+</script>
+
+<script type="text/javascript"
+        src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+
+</body>
+</html>
